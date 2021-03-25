@@ -41,10 +41,10 @@ screen = pygame.display.set_mode([WIDTH, HEIGHT])
 
 # Set up file directory stuff
 APP_FOLDER = os.path.dirname(os.path.realpath(sys.argv[0]))
-FONT_DIR = os.path.join(APP_FOLDER, "Montserrat-Regular.ttf")
-JUMP_DIR = os.path.join(APP_FOLDER, "jump.mp3")
-DEATH_DIR = os.path.join(APP_FOLDER, "death.mp3")
-MUSIC_DIR = os.path.join(APP_FOLDER, "music.mp3")
+FONT_DIR = os.path.join(APP_FOLDER, "assets/Montserrat-Regular.ttf")
+JUMP_DIR = os.path.join(APP_FOLDER, "assets/jump.mp3")
+DEATH_DIR = os.path.join(APP_FOLDER, "assets/death.mp3")
+MUSIC_DIR = os.path.join(APP_FOLDER, "assets/music.mp3")
 
 # Set up mixer and sounds
 mixer.init()
