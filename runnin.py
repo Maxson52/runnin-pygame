@@ -246,8 +246,9 @@ class CharacterSelectBox(pygame.sprite.Sprite):
         self.color = color
         self.surf.fill(self.color)
 
-        self.y = HEIGHT - 100
-        self.center = 280
+        self.starty = HEIGHT - 60
+        self.y = self.starty
+        self.center = 295
         self.pos = pos
         self.yvel = 0
 
@@ -255,15 +256,15 @@ class CharacterSelectBox(pygame.sprite.Sprite):
 
     def update(self, isActive):
         if isActive:
-            if self.y == HEIGHT - 120:
+            if self.y == self.starty - 20:
                 self.yvel = 1
-            elif self.y == HEIGHT - 100:
+            elif self.y == self.starty:
                 self.yvel = -1
 
             self.y += self.yvel
         else:
             self.yvel = 0
-            self.y = HEIGHT - 100
+            self.y = self.starty
 
         self.rect = self.surf.get_rect(center=(self.pos + self.center, self.y))
 
@@ -280,12 +281,16 @@ all_sprites.add(p1)
 ts_Highscore = TitleScreenText(18)
 ts_YourScore = TitleScreenText(18)
 ts_PressSpace = TitleScreenText(32)
+ts_CharSelect = TitleScreenText(24)
+ts_CharSelectTips = TitleScreenText(14)
 titleScreenBackground = TitleScreenBackground()
 titleScreen = pygame.sprite.Group()
 titleScreen.add(titleScreenBackground)
 titleScreen.add(ts_Highscore)
 titleScreen.add(ts_YourScore)
 titleScreen.add(ts_PressSpace)
+titleScreen.add(ts_CharSelect)
+titleScreen.add(ts_CharSelectTips)
 
 characterSelectBoxes = pygame.sprite.Group()
 for i in range(len(ALLCOLORS)):
@@ -371,9 +376,12 @@ while running:
                 gameOver = False
 
         bgSquares.update()
-        ts_Highscore.update(f"Highscore {HIGHSCORE}", -170)
-        ts_YourScore.update(f"Your score {SCORE}", -150)
-        ts_PressSpace.update("Press space to play again", 0)
+        ts_Highscore.update(f"Highscore {HIGHSCORE}", -200)
+        ts_YourScore.update(f"Your score {SCORE}", -170)
+        ts_PressSpace.update("Press space to play", -25)
+        ts_CharSelect.update("Character selection", 100)
+        ts_CharSelectTips.update(
+            "Use your arrow keys to navigate", 127)
 
         for square in bgSquares:
             screen.blit(square.surf, square.rect)
