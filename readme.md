@@ -1,6 +1,6 @@
 # Runnin'
 
-An infinite runner, inspired by Geometry Dash and Jetpack Joyride, made in Pygame
+An infinite runner, inspired by Geometry Dash and Jetpack Joyride, made in Pygame.
 
 ## Installation
 
