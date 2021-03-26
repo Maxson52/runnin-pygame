@@ -150,6 +150,11 @@ class BottomSpike(pygame.sprite.Sprite):
         if self.rect.right <= 0:
             self.kill()
 
+        for spike in allSpikes:
+            if self.rect.top == spike.rect.top:
+                if self.rect.left < spike.rect.right and self.rect.left > spike.rect.left:
+                    self.kill()
+
 
 class TopSpike(pygame.sprite.Sprite):
     def __init__(self):
@@ -177,6 +182,11 @@ class TopSpike(pygame.sprite.Sprite):
 
         if self.rect.right <= 0:
             self.kill()
+
+        for spike in allSpikes:
+            if self.rect.top == spike.rect.top:
+                if self.rect.left < spike.rect.right and self.rect.left > spike.rect.left:
+                    self.kill()
 
 
 class BackgroundSquare(pygame.sprite.Sprite):
@@ -310,9 +320,9 @@ MAKEBG = pygame.USEREVENT + 1
 pygame.time.set_timer(MAKEBG, 150)
 
 MAKEBOTTOMSPIKE = pygame.USEREVENT + 2
-pygame.time.set_timer(MAKEBOTTOMSPIKE, random.randint(500, 1000))
+pygame.time.set_timer(MAKEBOTTOMSPIKE, random.randint(500, 750))
 MAKETOPSPIKE = pygame.USEREVENT + 3
-pygame.time.set_timer(MAKETOPSPIKE, random.randint(500, 1000))
+pygame.time.set_timer(MAKETOPSPIKE, random.randint(500, 750))
 
 # Game loop
 clock = pygame.time.Clock()
@@ -347,13 +357,25 @@ while running:
             new_square = BackgroundSquare()
             bgSquares.add(new_square)
         if e.type == MAKEBOTTOMSPIKE:
-            pygame.time.set_timer(MAKEBOTTOMSPIKE, int(random.randint(
-                600, 1000) - (SPIKESPEED**2)))
+            if SPIKESPEED > 16:  # if speed is high, make more spikes
+                randomNumber = random.randint(100, 400)
+            elif SPIKESPEED > 12:
+                randomNumber = random.randint(300, 650)
+            else:
+                randomNumber = random.randint(500, 1000)
+
+            pygame.time.set_timer(MAKEBOTTOMSPIKE, randomNumber)
             new_spike = BottomSpike()
             allSpikes.add(new_spike)
         if e.type == MAKETOPSPIKE:
-            pygame.time.set_timer(MAKETOPSPIKE, int(random.randint(
-                600, 1000) - (SPIKESPEED**2)))
+            if SPIKESPEED > 16:  # if speed is high, make more spikes
+                randomNumber = random.randint(100, 400)
+            elif SPIKESPEED > 12:
+                randomNumber = random.randint(300, 650)
+            else:
+                randomNumber = random.randint(500, 1000)
+
+            pygame.time.set_timer(MAKETOPSPIKE, randomNumber)
             new_spike = TopSpike()
             allSpikes.add(new_spike)
 
