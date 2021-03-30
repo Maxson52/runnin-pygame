@@ -1,3 +1,6 @@
+# ----------------------------------------------------
+# Imports
+# ----------------------------------------------------
 import pygame
 import random
 import os
@@ -12,6 +15,7 @@ from pygame.locals import (
 )
 
 pygame.init()
+pygame.display.set_caption('Runnin')
 
 WIDTH = 853
 HEIGHT = 480
@@ -37,6 +41,11 @@ HIGHSCORE = 0
 SPEEDMULTIPLIER = 0.005
 SPIKESPEED = 6
 
+EXTRALIFE = False
+NOSPIKES = False
+MORESPIKES = ""
+POWERUP_TEXT = ""
+
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 
 # Set up file directory stuff
@@ -45,6 +54,10 @@ FONT_DIR = os.path.join(APP_FOLDER, "assets/Montserrat-Regular.ttf")
 JUMP_DIR = os.path.join(APP_FOLDER, "assets/jump.mp3")
 DEATH_DIR = os.path.join(APP_FOLDER, "assets/death.mp3")
 MUSIC_DIR = os.path.join(APP_FOLDER, "assets/music.mp3")
+P_HEART_DIR = os.path.join(APP_FOLDER, "assets/heart.png")
+P_INVINCIBLE_DIR = os.path.join(APP_FOLDER, "assets/invincible.png")
+P_MORESPIKES_DIR = os.path.join(APP_FOLDER, "assets/moreSpikes.png")
+P_SPEEDBOOST_DIR = os.path.join(APP_FOLDER, "assets/speedBoost.png")
 
 # Set up mixer and sounds
 mixer.init()
@@ -60,7 +73,9 @@ die = pygame.mixer.Sound(DEATH_DIR)
 jump.set_volume(0.1)
 die.set_volume(0.3)
 
+# ----------------------------------------------------
 # Classes
+# ----------------------------------------------------
 colliding = False
 gravityChanging = False
 
@@ -226,6 +241,21 @@ class ScoreText(pygame.sprite.Sprite):
         self.surf = self.font.render(f"{SCORE}", True, WHITE)
 
 
+class PowerupText(pygame.sprite.Sprite):
+    def __init__(self):
+        super(PowerupText, self).__init__()
+        self.font = pygame.font.Font(
+            FONT_DIR, 32)
+        self.surf = self.font.render(POWERUP_TEXT, True, WHITE)
+        self.rect = self.surf.get_rect(center=(WIDTH / 2, HEIGHT - 22))
+
+    def update(self):
+        self.surf = self.font.render(POWERUP_TEXT, True, WHITE)
+        self.rect = self.surf.get_rect(center=(WIDTH / 2, HEIGHT - 22))
+
+# Main screen classes
+
+
 class TitleScreenText(pygame.sprite.Sprite):
     def __init__(self, size):
         super(TitleScreenText, self).__init__()
@@ -278,8 +308,122 @@ class CharacterSelectBox(pygame.sprite.Sprite):
 
         self.rect = self.surf.get_rect(center=(self.pos + self.center, self.y))
 
+# Powerup classes
 
+
+class P_Heart(pygame.sprite.Sprite):
+    def __init__(self):
+        super(P_Heart, self).__init__()
+        self.surf = pygame.image.load(P_HEART_DIR).convert_alpha()
+        self.surf = pygame.transform.scale(self.surf, (25, 25))
+        self.rect = self.surf.get_rect(
+            topleft=(WIDTH, HEIGHT / 2))
+
+    def update(self, pos):
+        if pos != None:
+            self.rect.x = WIDTH + pos
+
+        self.rect.move_ip(-SPIKESPEED, 0)
+
+        heartTouch = pygame.sprite.collide_rect(p1, self)
+        if heartTouch:
+            global EXTRALIFE
+            global POWERUP_TEXT
+            POWERUP_TEXT = "+1 Life"
+            EXTRALIFE = True
+            self.rect.right = 0
+
+
+class P_Invincible(pygame.sprite.Sprite):
+    def __init__(self):
+        super(P_Invincible, self).__init__()
+        self.surf = pygame.image.load(P_INVINCIBLE_DIR).convert_alpha()
+        self.surf = pygame.transform.scale(self.surf, (25, 25))
+        self.rect = self.surf.get_rect(topleft=(WIDTH, HEIGHT / 2))
+
+        self.startScore = 0
+
+    def update(self, pos):
+        global NOSPIKES
+        global POWERUP_TEXT
+
+        if SCORE >= self.startScore + 100 and NOSPIKES != False:
+            NOSPIKES = False
+            POWERUP_TEXT = ""
+
+        if pos != None:
+            self.rect.x = WIDTH + pos
+
+        self.rect.move_ip(-SPIKESPEED, 0)
+
+        invincibleTouch = pygame.sprite.collide_rect(p1, self)
+        if invincibleTouch:
+            POWERUP_TEXT = "No Spikes!"
+            NOSPIKES = True
+            self.rect.right = 0
+            self.startScore = SCORE
+
+
+class P_MoreSpikes(pygame.sprite.Sprite):
+    def __init__(self):
+        super(P_MoreSpikes, self).__init__()
+        self.surf = pygame.image.load(P_MORESPIKES_DIR).convert_alpha()
+        self.surf = pygame.transform.scale(self.surf, (25, 25))
+        self.rect = self.surf.get_rect(topleft=(WIDTH, HEIGHT / 2))
+
+        self.startScore = 0
+
+    def update(self, pos):
+        global MORESPIKES
+        global POWERUP_TEXT
+
+        if SCORE >= self.startScore + 250 and MORESPIKES != "":
+            MORESPIKES = ""
+            POWERUP_TEXT = ""
+
+        if pos != None:
+            self.rect.x = WIDTH + pos
+
+        self.rect.move_ip(-SPIKESPEED, 0)
+
+        invincibleTouch = pygame.sprite.collide_rect(p1, self)
+        if invincibleTouch:
+            POWERUP_TEXT = "More Spikes!"
+            self.rect.right = 0
+            self.startScore = SCORE
+
+            if p1.gravityDown:
+                MORESPIKES = "bot"
+            else:
+                MORESPIKES = "top"
+
+
+class P_SpeedBoost(pygame.sprite.Sprite):
+    def __init__(self):
+        super(P_SpeedBoost, self).__init__()
+        self.surf = pygame.image.load(P_SPEEDBOOST_DIR).convert_alpha()
+        self.surf = pygame.transform.scale(self.surf, (25, 25))
+        self.rect = self.surf.get_rect(topleft=(WIDTH, HEIGHT / 2))
+        self.speed = SPIKESPEED
+
+    def update(self, pos):
+        if pos != None:
+            self.rect.x = WIDTH + pos
+
+        global SPIKESPEED
+        self.rect.move_ip(-SPIKESPEED, 0)
+
+        invincibleTouch = pygame.sprite.collide_rect(p1, self)
+        if invincibleTouch:
+            global POWERUP_TEXT
+            POWERUP_TEXT = "+2 Speed Increase"
+            SPIKESPEED += 2
+            self.rect.right = 0
+
+
+# ----------------------------------------------------
 # Init class objects
+# ----------------------------------------------------
 p1 = Player()
 scoreText = ScoreText()
 platforms = pygame.sprite.Group()
@@ -324,7 +468,22 @@ pygame.time.set_timer(MAKEBOTTOMSPIKE, random.randint(500, 750))
 MAKETOPSPIKE = pygame.USEREVENT + 3
 pygame.time.set_timer(MAKETOPSPIKE, random.randint(500, 750))
 
+# Init powerup classes
+heart = P_Heart()
+invincible = P_Invincible()
+moreSpikes = P_MoreSpikes()
+speedBoost = P_SpeedBoost()
+powerupText = PowerupText()
+powerupGroup = pygame.sprite.Group()
+powerupGroup.add(heart)
+powerupGroup.add(invincible)
+powerupGroup.add(moreSpikes)
+powerupGroup.add(speedBoost)
+powerupGroup.add(powerupText)
+
+# ----------------------------------------------------
 # Game loop
+# ----------------------------------------------------
 clock = pygame.time.Clock()
 
 jumpTimer = pygame.time.Clock()
@@ -357,23 +516,29 @@ while running:
             new_square = BackgroundSquare()
             bgSquares.add(new_square)
         if e.type == MAKEBOTTOMSPIKE:
-            if SPIKESPEED > 16:  # if speed is high, make more spikes
-                randomNumber = random.randint(100, 400)
-            elif SPIKESPEED > 12:
-                randomNumber = random.randint(300, 650)
+            if MORESPIKES == "bot":
+                randomNumber = 10
             else:
-                randomNumber = random.randint(500, 1000)
+                if SPIKESPEED > 16:  # if speed is high, make more spikes
+                    randomNumber = random.randint(100, 400)
+                elif SPIKESPEED > 12:
+                    randomNumber = random.randint(300, 650)
+                else:
+                    randomNumber = random.randint(500, 1000)
 
             pygame.time.set_timer(MAKEBOTTOMSPIKE, randomNumber)
             new_spike = BottomSpike()
             allSpikes.add(new_spike)
         if e.type == MAKETOPSPIKE:
-            if SPIKESPEED > 16:  # if speed is high, make more spikes
-                randomNumber = random.randint(100, 400)
-            elif SPIKESPEED > 12:
-                randomNumber = random.randint(300, 650)
+            if MORESPIKES == "top":
+                randomNumber = 10
             else:
-                randomNumber = random.randint(500, 1000)
+                if SPIKESPEED > 16:  # if speed is high, make more spikes
+                    randomNumber = random.randint(100, 400)
+                elif SPIKESPEED > 12:
+                    randomNumber = random.randint(300, 650)
+                else:
+                    randomNumber = random.randint(500, 1000)
 
             pygame.time.set_timer(MAKETOPSPIKE, randomNumber)
             new_spike = TopSpike()
@@ -389,6 +554,20 @@ while running:
         pressed = pygame.key.get_pressed()
         if pressed[K_SPACE]:
             if pygame.time.get_ticks() - gameOverTimer > 500:
+                # reset powerups
+                heartPos = random.randint(200, 20000)
+                invinciblePos = random.randint(200, 20000)
+                moreSpikesPos = random.randint(200, 20000)
+                speedBoostPos = random.randint(200, 20000)
+                heart.update(heartPos)
+                invincible.update(invinciblePos)
+                moreSpikes.update(moreSpikesPos)
+                speedBoost.update(speedBoostPos)
+                POWERUP_TEXT = ""
+                NOSPIKES = False
+                MORESPIKES = ""
+
+                # reset game
                 allSpikes.empty()
                 pygame.time.set_timer(MAKETOPSPIKE, random.randint(600, 1000))
                 pygame.time.set_timer(
@@ -427,6 +606,11 @@ while running:
     p1.update(pressed)
     bgSquares.update()
     scoreText.update()
+    heart.update(None)
+    invincible.update(None)
+    moreSpikes.update(None)
+    speedBoost.update(None)
+    powerupText.update()
 
     # sense for collision with top or bottom of screen
     touching = pygame.sprite.spritecollide(p1, platforms, False)
@@ -448,14 +632,26 @@ while running:
         p1, allSpikes, False, collided=pygame.sprite.collide_mask)
     if spikeCollide:
         die.play()
-        gameOver = True
-        gameOverTimer = pygame.time.get_ticks()
+        if EXTRALIFE:
+            POWERUP_TEXT = ""
+            EXTRALIFE = False
+            spikeCollide[0].kill()
+        else:
+            gameOver = True
+            gameOverTimer = pygame.time.get_ticks()
+
+    # if invincible powerup is active, kill all spikes
+    if NOSPIKES:
+        allSpikes.empty()
 
     for square in bgSquares:  # in order to place the squares behind the player, blit them first
         screen.blit(square.surf, square.rect)
 
     for graphic in all_sprites:
         screen.blit(graphic.surf, graphic.rect)
+
+    for powerup in powerupGroup:
+        screen.blit(powerup.surf, powerup.rect)
 
     allSpikes.update()  # update spikes here as they are blitted in update function
 
