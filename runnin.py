@@ -1,3 +1,10 @@
+# Runnin
+# ----------------------------------------------------
+# Based off Geometry Dash and Jetpack Joyride, is a hyper-casual game with the objective of beating your highscore by avoiding the spikes, collecting the powerups, and runnin the farthest
+# Hyper-casual games are easy-to-play, minimal, and fun. More info here: https://en.wikipedia.org/wiki/Hyper-casual_game
+
+# Github page can be found here https://github.com/Maxson52/runnin-pygame
+
 # ----------------------------------------------------
 # Imports
 # ----------------------------------------------------
@@ -15,7 +22,6 @@ from pygame.locals import (
 )
 
 pygame.init()
-pygame.display.set_caption('Runnin')
 
 WIDTH = 853
 HEIGHT = 480
@@ -46,11 +52,10 @@ NOSPIKES = False
 MORESPIKES = ""
 POWERUP_TEXT = ""
 
-screen = pygame.display.set_mode([WIDTH, HEIGHT])
-
 # Set up file directory stuff
 APP_FOLDER = os.path.dirname(os.path.realpath(sys.argv[0]))
 FONT_DIR = os.path.join(APP_FOLDER, "assets/Montserrat-Regular.ttf")
+ICON_DIR = os.path.join(APP_FOLDER, "assets/logo.png")
 JUMP_DIR = os.path.join(APP_FOLDER, "assets/jump.mp3")
 DEATH_DIR = os.path.join(APP_FOLDER, "assets/death.mp3")
 MUSIC_DIR = os.path.join(APP_FOLDER, "assets/music.mp3")
@@ -58,6 +63,13 @@ P_HEART_DIR = os.path.join(APP_FOLDER, "assets/heart.png")
 P_INVINCIBLE_DIR = os.path.join(APP_FOLDER, "assets/invincible.png")
 P_MORESPIKES_DIR = os.path.join(APP_FOLDER, "assets/moreSpikes.png")
 P_SPEEDBOOST_DIR = os.path.join(APP_FOLDER, "assets/speedBoost.png")
+
+# Init things and stuffs
+screen = pygame.display.set_mode([WIDTH, HEIGHT])
+pygame.display.set_caption('Runnin\'')
+icon = pygame.image.load(ICON_DIR)
+pygame.display.set_icon(icon)
+
 
 # Set up mixer and sounds
 mixer.init()
@@ -264,9 +276,14 @@ class TitleScreenText(pygame.sprite.Sprite):
         self.surf = self.font.render("", True, WHITE)
         self.rect = self.surf.get_rect(center=(WIDTH / 2, HEIGHT / 2))
 
-    def update(self, text, pos):
+    def update(self, text, posY, posX, centered):
         self.surf = self.font.render(text, True, WHITE)
-        self.rect = self.surf.get_rect(center=(WIDTH / 2, HEIGHT / 2 + pos))
+
+        if centered:
+            self.rect = self.surf.get_rect(
+                center=(WIDTH / 2 + posX, HEIGHT / 2 + posY))
+        else:
+            self.rect = self.surf.get_rect(topleft=(posX, posY))
 
 
 class TitleScreenBackground(pygame.sprite.Sprite):
@@ -422,7 +439,7 @@ class P_SpeedBoost(pygame.sprite.Sprite):
 
 
 # ----------------------------------------------------
-# Init class objects
+# Init class sprites
 # ----------------------------------------------------
 p1 = Player()
 scoreText = ScoreText()
@@ -437,6 +454,11 @@ ts_YourScore = TitleScreenText(18)
 ts_PressSpace = TitleScreenText(32)
 ts_CharSelect = TitleScreenText(24)
 ts_CharSelectTips = TitleScreenText(14)
+ts_HowToPlay1 = TitleScreenText(14)
+ts_HowToPlay2 = TitleScreenText(14)
+ts_HowToPlay3 = TitleScreenText(14)
+ts_HowToPlay4 = TitleScreenText(14)
+ts_HowToPlayButton = TitleScreenText(32)
 titleScreenBackground = TitleScreenBackground()
 titleScreen = pygame.sprite.Group()
 titleScreen.add(titleScreenBackground)
@@ -445,6 +467,7 @@ titleScreen.add(ts_YourScore)
 titleScreen.add(ts_PressSpace)
 titleScreen.add(ts_CharSelect)
 titleScreen.add(ts_CharSelectTips)
+titleScreen.add(ts_HowToPlayButton)
 
 characterSelectBoxes = pygame.sprite.Group()
 for i in range(len(ALLCOLORS)):
@@ -554,11 +577,11 @@ while running:
         pressed = pygame.key.get_pressed()
         if pressed[K_SPACE]:
             if pygame.time.get_ticks() - gameOverTimer > 500:
-                # reset powerups
-                heartPos = random.randint(200, 20000)
-                invinciblePos = random.randint(200, 20000)
-                moreSpikesPos = random.randint(200, 20000)
-                speedBoostPos = random.randint(200, 20000)
+                # reset powerups and their position
+                heartPos = random.randint(200, 30000)
+                invinciblePos = random.randint(200, 30000)
+                moreSpikesPos = random.randint(200, 30000)
+                speedBoostPos = random.randint(200, 30000)
                 heart.update(heartPos)
                 invincible.update(invinciblePos)
                 moreSpikes.update(moreSpikesPos)
@@ -577,12 +600,21 @@ while running:
                 gameOver = False
 
         bgSquares.update()
-        ts_Highscore.update(f"Highscore {HIGHSCORE}", -200)
-        ts_YourScore.update(f"Your score {SCORE}", -170)
-        ts_PressSpace.update("Press space to play", -25)
-        ts_CharSelect.update("Character selection", 100)
+        ts_Highscore.update(f"Highscore {HIGHSCORE}", -200, 0, True)
+        ts_YourScore.update(f"Your score {SCORE}", -170, 0, True)
+        ts_PressSpace.update("Press space to play", -25, 0, True)
+        ts_CharSelect.update("Character selection", 100, 0, True)
         ts_CharSelectTips.update(
-            "Use your arrow keys to navigate", 127)
+            "Use your arrow keys to navigate", 127, 0, True)
+
+        ts_HowToPlayButton.update("?", 5, 10, False)
+
+        ts_HowToPlay1.update("Press space to jump", 40, 10, False)
+        ts_HowToPlay2.update(
+            "Double press space to change gravity", 60, 10, False)
+        ts_HowToPlay3.update(
+            "Collect power-ups, and avoid power-downs", 80, 10, False)
+        ts_HowToPlay4.update("Beat your highscore!", 100, 10, False)
 
         for square in bgSquares:
             screen.blit(square.surf, square.rect)
@@ -596,6 +628,12 @@ while running:
             else:
                 character.update(False)
             screen.blit(character.surf, character.rect)
+
+        if ts_HowToPlayButton.surf.get_rect().collidepoint(pygame.mouse.get_pos()):
+            screen.blit(ts_HowToPlay1.surf, ts_HowToPlay1.rect)
+            screen.blit(ts_HowToPlay2.surf, ts_HowToPlay2.rect)
+            screen.blit(ts_HowToPlay3.surf, ts_HowToPlay3.rect)
+            screen.blit(ts_HowToPlay4.surf, ts_HowToPlay4.rect)
 
         pygame.display.flip()
         clock.tick(60)
